@@ -1,0 +1,4 @@
+interface:
+  display_name: "{DISPLAY_NAME}"
+  short_description: "{SHORT_DESCRIPTION}"
+  default_prompt: "使用 ${SKILL_NAME} {DEFAULT_PROMPT_ACTION}"

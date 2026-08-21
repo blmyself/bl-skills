@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill 锻造师"
+  short_description: "将原始提示词与需求锻造成适配多平台的标准 AI Agent 技能"
+  default_prompt: "使用 $skill-creator 帮我把以下提示词或需求改造成标准的跨平台 Skill："

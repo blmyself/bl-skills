@@ -1,0 +1,4 @@
+interface:
+  display_name: "专属战略顾问"
+  short_description: "通过连续追问厘清复杂局势，并形成可执行的详细战略行动规划"
+  default_prompt: "使用 $strategic-advisor 主动追问我的真实处境，厘清关键矛盾后再制定详细行动规划。"

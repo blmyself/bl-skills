@@ -1,0 +1,9 @@
+---
+description: {SKILL_DESCRIPTION}
+globs: *
+alwaysApply: false
+---
+
+# {DISPLAY_NAME}
+
+{SKILL_BODY}
