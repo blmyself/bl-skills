@@ -1,0 +1,88 @@
+{
+  "node": {
+    "file_key": "",
+    "node_id": "",
+    "node_name": "",
+    "platform_chrome_filtered_nodes": []
+  },
+  "tokens": {
+    "colors": [
+      {
+        "usage": "primary_text",
+        "name": "Foundation/Mazaya/Black/black-500",
+        "value": "#000000"
+      }
+    ],
+    "typography": [
+      {
+        "usage": "title",
+        "family": "Bell MT",
+        "size": 28,
+        "line_height": 32,
+        "letter_spacing": 0,
+        "targets": [
+          "titleLabel1",
+          "titleLabel2"
+        ]
+      }
+    ],
+    "radii": [
+      {
+        "usage": "primary_cta",
+        "value": 6,
+        "targets": [
+          "downloadButton"
+        ]
+      }
+    ],
+    "spacing": [
+      {
+        "usage": "content_stack",
+        "value": 24
+      }
+    ],
+    "shadows": [
+      {
+        "usage": "primary_cta",
+        "blur": 48,
+        "alpha": 0.04,
+        "offset_x": 0,
+        "offset_y": 0,
+        "targets": [
+          "downloadButton"
+        ]
+      }
+    ]
+  },
+  "anatomy": {
+    "x_axis": [],
+    "y_axis": [],
+    "z_axis": []
+  },
+  "layout_tree": [],
+  "interactions": [
+    {
+      "node_id": "",
+      "intent": "",
+      "control": "UIButton",
+      "target": "",
+      "confidence": "high"
+    }
+  ],
+  "flow": {
+    "primary_path": [],
+    "secondary_paths": [],
+    "terminal_states": []
+  },
+  "business_assumptions": [
+    "List dynamic assumptions inferred from implementation and design context."
+  ],
+  "unresolved": [
+    {
+      "field": "",
+      "severity": "major",
+      "status": "unknown",
+      "reason": ""
+    }
+  ]
+}

@@ -10,6 +10,7 @@
 | :--- | :--- | :--- | :--- |
 | **`skill-creator`** | Skill 锻造师 | 将原始提示词与需求自动锻造成跨平台标准 Skill | 全平台 |
 | **`strategic-advisor`** | 专属战略顾问 | 通过连续深度追问厘清复杂局势，输出可执行详细战略规划 | 全平台 |
+| **`figma-to-ios-pro`** | Figma 转 iOS 专家 | 全链路 Figma 转 iOS：全局设计系统提取、整套 App 扫描、单页/组件精细化 UIKit/SwiftUI 代码生成与视觉保真度审计 | 全平台 |
 
 ---
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Figma to iOS Pro"
+  short_description: "全链路 Figma 转 iOS 专家：支持全局设计系统提取、整套 App 扫描、单页/组件精细化 UIKit/SwiftUI 代码生成与视觉保真度审计"
+  default_prompt: "使用 $figma-to-ios-pro 将 Figma 设计稿高精度转换为 iOS 生产代码。支持从 Figma URL 自动提取 Token、扫描整套 App 架构、拆分可复用 UIKit/SwiftUI 组件，或对现有代码进行视觉还原度审计。"

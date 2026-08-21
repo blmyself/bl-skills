@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project UI Pattern Memory"
+  short_description: "Learn a repo's UI patterns and design system for figma-to-ios-ui"
+  default_prompt: "Use $project-ui-pattern-memory to inspect the active iOS codebase, derive its UI patterns and design system conventions, and produce a concise project UI memory brief that `figma-to-ios-ui` can use for repo-specific adaptation."
