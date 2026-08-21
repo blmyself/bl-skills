@@ -82,7 +82,7 @@ class FigmaAPIClient:
         req.add_header("X-Figma-Token", self.token)
         req.add_header("User-Agent", "FigmaToIOSPro/2.0")
 
-        max_retries = 3
+        max_retries = 5
         for attempt in range(max_retries):
             try:
                 with urllib.request.urlopen(req, timeout=30) as resp:
@@ -92,9 +92,10 @@ class FigmaAPIClient:
                     return data
             except urllib.error.HTTPError as e:
                 if e.code == 429:
-                    wait_time = (attempt + 1) * 3
+                    wait_time = (attempt + 1) * 4
                     print(f"⚠️ 收到 Figma 429 限流提示，等待 {wait_time} 秒后重试 (第 {attempt+1}/{max_retries} 次)...", file=sys.stderr)
                     time.sleep(wait_time)
+                    continue
                 else:
                     err_msg = e.read().decode("utf-8", errors="ignore")
                     raise RuntimeError(f"Figma API 请求失败 [HTTP {e.code}]: {err_msg}")

@@ -1,13 +1,14 @@
 # Figma to iOS Pro 🎨 ➡️ 🍏
 
-> **全链路 Figma 转 iOS 专家**：一键提取全局设计系统、整套 App 大纲扫描、单页/组件精细化 UIKit (Masonry/XIB) 或 SwiftUI 代码生成与视觉保真度审计。
+> **全链路 Figma 转 iOS 专家**：一键提取全局设计系统、整套 App 大纲扫描、按模块 Namespace 自动切图导出、单页/组件精细化 UIKit (Masonry/XIB) 或 SwiftUI 代码生成与视觉保真度审计。
 
 ---
 
 ## 🌟 核心特性
 
 - 🎯 **单一中枢，智能调度**：无需在提取工具和翻译工具之间来回切换，输入 Figma 链接自动感知意图。
-- 🔑 **内置零配置鉴权**：支持免费的 Figma Personal Access Token 与官方 REST API，防频控自动退避，无需购买专业版/Dev Mode。
+- 🔑 **内置零配置鉴权与防频控**：支持免费的 Figma Personal Access Token，内置 **429 智能指数退避重试** 与 **本地强缓存机制**，无需购买专业版/Dev Mode。
+- 🖼️ **模块化切图与 Namespace 隔离**：自动识别图标/切图并批量生成 `@2x/@3x` PNG 写入 `Assets.xcassets/<ModuleName>/`（自动优先标准 `Assets.xcassets`，同时兼容 `Images.xcassets`），开启 `"provides-namespace": true` 彻底杜绝重名冲突。
 - 🧭 **整套 App 扫描能力**：一键提取全局 Design Tokens（颜色/字体/阴影）与所有页面画板大纲，杜绝硬编码。
 - 🧩 **架构级组件拆分**：严禁单文件无脑堆砌，根据 Figma 结构智能拆分高复用子组件。
 - 🛠️ **多平台兼容**：适配 Google Antigravity、Anthropic Claude Code、OpenAI Codex、ByteDance Trae 与 Cursor。
@@ -26,7 +27,16 @@ https://www.figma.com/design/YOUR_FILE_KEY/MyApp?node-id=100-200
 
 ---
 
-### 场景 2：整套 App 页面大纲扫描与架构梳理
+### 场景 2：按模块 Namespace 自动切图导出至 `Assets.xcassets`
+```text
+把这个 Figma 节点里的图标切图导出到项目的 Assets.xcassets，归类到 PredictionLeak 模块下：
+https://www.figma.com/design/YOUR_FILE_KEY/MyApp?node-id=100-200
+```
+> **AI 动作**：自动探测工程中的 `Assets.xcassets`（或兼容 `Images.xcassets`），自动识别图标元素，批量拉取 `@2x` 和 `@3x` 高清切图，并在 `Assets.xcassets/PredictionLeak/` 下生成带命名空间配置的 `.imageset` 资源包。
+
+---
+
+### 场景 3：整套 App 页面大纲扫描与架构梳理
 提供 Figma 文件主链接（不带 node-id）：
 ```text
 扫描这个 Figma 文件，帮我整理出整套 App 的页面清单与通用组件脑图：
@@ -36,7 +46,7 @@ https://www.figma.com/design/YOUR_FILE_KEY/MyApp
 
 ---
 
-### 场景 3：一键提取全局设计系统 (Design Tokens)
+### 场景 4：一键提取全局设计系统 (Design Tokens)
 ```text
 提取这个 Figma 文件的全局设计规范，生成 Objective-C 和 Swift 的常量代码：
 https://www.figma.com/design/YOUR_FILE_KEY/MyApp
@@ -45,7 +55,7 @@ https://www.figma.com/design/YOUR_FILE_KEY/MyApp
 
 ---
 
-### 场景 4：现有代码对齐与视觉保真度审计
+### 场景 5：现有代码对齐与视觉保真度审计
 ```text
 结合 Figma 设计检查 ProfileHeaderView.m 的还原度：
 Figma 链接: https://www.figma.com/design/YOUR_FILE_KEY/MyApp?node-id=102-45
@@ -54,7 +64,7 @@ Figma 链接: https://www.figma.com/design/YOUR_FILE_KEY/MyApp?node-id=102-45
 
 ---
 
-## ⚙️ Token 鉴权配置
+## ⚙️ Token 鉴权与防频控 (Rate Limiting)
 
 本技能支持三级自动 Token 探测机制，配置一次即可永久免密使用：
 
@@ -71,6 +81,8 @@ Figma 链接: https://www.figma.com/design/YOUR_FILE_KEY/MyApp?node-id=102-45
 3. **Figma Desktop 本地模式**：
    若本地开启了 Figma 桌面端开发模式（端口 3845），支持直接通过鼠标选中的图层免 Token 交互。
 
+> 🛡️ **429 防限流保护**：客户端底层内置了 `Cache-First`（本地强缓存）与指数退避重试（`4s -> 8s -> 12s -> 16s`），即使是免费的 Starter 账号在批量操作时也能平稳运行。
+
 ---
 
 ## 🛠️ 目录结构与工具脚本
@@ -83,7 +95,8 @@ figma-to-ios-pro/
 ├── agents/
 │   └── openai.yaml                    # Agent 平台元数据
 ├── scripts/                           # 自动化 Python 工具库
-│   ├── figma_api_client.py            # 核心 API 客户端 (含缓存与重试)
+│   ├── figma_api_client.py            # 核心 API 客户端 (含缓存与 429 智能重试)
+│   ├── export_assets_to_xcassets.py   # 模块 Namespace 自动切图导出器 (@2x/@3x，优先 Assets.xcassets 兼容 Images.xcassets)
 │   ├── export_design_tokens.py        # 全局设计 Token 提取器
 │   ├── scan_app_screens.py            # 整套 App 架构大纲扫描器
 │   ├── extract_node_spec.py           # 单节点属性与高清截图提取
@@ -105,14 +118,15 @@ figma-to-ios-pro/
 - **原始作者**：[@AmrMohamad](https://github.com/AmrMohamad)
 - **本次升级改动**：
   1. 将原本分立的 `figma-mcp` 与 `figma-to-ios-ui` 两个技能合并为单一中枢 `figma-to-ios-pro`。
-  2. 引入全自动 Figma REST API 客户端，消除本地 MCP 付费限制。
-  3. 新增全 App 页面大纲扫描器 (`scan_app_screens.py`) 与全局 Design Tokens 自动导出器 (`export_design_tokens.py`)。
-  4. 强化 Objective-C + Masonry 与 SwiftUI 的项目技术栈自动嗅探与组件解耦能力。
+  2. 引入全自动 Figma REST API 客户端，内置 429 指数退避与本地强缓存，消除本地 MCP 付费限制。
+  3. 新增按模块 Namespace 自动切图与 Asset Catalog 导出器 (`export_assets_to_xcassets.py`)，**优先标准 `Assets.xcassets`，同时兼容旧工程 `Images.xcassets`**。
+  4. 新增全 App 页面大纲扫描器 (`scan_app_screens.py`) 与全局 Design Tokens 自动导出器 (`export_design_tokens.py`)。
+  5. 强化 Objective-C + Masonry 与 SwiftUI 的项目技术栈自动嗅探与组件解耦能力。
 
 ---
 
 ## 💡 最佳开发实践建议
 
-1. **先全局后局部**：大型项目先运行【场景 3】提取全局 Token 并创建基础库，再逐步落地每个具体页面。
-2. **多用批量提取**：单次 API 支持传入多个 Node ID，避免重复请求。
+1. **先全局后局部**：大型项目先运行【场景 4】提取全局 Token 并创建基础库，再逐步落地具体页面。
+2. **切图按模块归类**：运行【场景 2】自动切图并指定 `--module <ModuleName>`，Xcode 会自动以命名空间隔离管理。
 3. **保持组件解耦**：每个独立视图组件保持职责单一，通过 Delegate / Block 与主控制器通信。
