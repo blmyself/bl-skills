@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 try:
-    from figma_api_client import FigmaAPIClient
+    from figma_api_client import FigmaAPIClient, run_cli
 except ImportError:
-    from scripts.figma_api_client import FigmaAPIClient
+    from scripts.figma_api_client import FigmaAPIClient, run_cli
 
 
 def parse_figma_url(url: str):
@@ -64,7 +64,8 @@ def main():
     print(f"  📄 节点数据 JSON: {json_path}")
     if img_path:
         print(f"  🖼️ 渲染截图 PNG: {img_path}")
+    print(f"  {client.usage_summary()}")
 
 
 if __name__ == "__main__":
-    main()
+    run_cli(main)

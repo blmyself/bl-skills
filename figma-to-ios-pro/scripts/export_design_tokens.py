@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 try:
-    from figma_api_client import FigmaAPIClient
+    from figma_api_client import FigmaAPIClient, run_cli
 except ImportError:
-    from scripts.figma_api_client import FigmaAPIClient
+    from scripts.figma_api_client import FigmaAPIClient, run_cli
 
 
 def extract_file_key(url_or_key: str) -> str:
@@ -53,13 +53,14 @@ def main():
     print(f"🔍 正在连接 Figma API 分析文件 [FileKey: {file_key}]...")
     client = FigmaAPIClient()
 
-    # 1. 获取全局样式元数据
+    # 1. 获取全局样式元数据 [Tier 3，额度充裕]
     styles_meta = client.get_styles(file_key)
     meta_styles = styles_meta.get("meta", {}).get("styles", [])
-    
-    # 2. 深度扫描获取样式节点具体值
-    file_data = client.get_file(file_key, depth=3)
-    doc_styles = file_data.get("styles", {})
+
+    # 2. 仅取文件名 [Tier 3 的 files/:key/meta]
+    #    原实现在此处调用 get_file(depth=3)：那是最稀缺的 Tier1 额度 (Pro 仅 10 次/分)，
+    #    却只用来读一个 name 字段，纯属浪费，且大文件响应可达数十 MB。
+    doc_name = client.get_file_name(file_key, fallback="App Design System")
 
     colors = []
     typography = []
@@ -77,12 +78,12 @@ def main():
 
     print(f"✨ 发现 {len(colors)} 个颜色样式，{len(typography)} 个字体样式。")
 
-    # 尝试从具体节点拉取颜色值
+    # 尝试从具体节点拉取颜色值 (get_nodes 内部会自动去重分批，不再静默截断到前 50 个)
     if colors:
         node_ids = [c["node_id"] for c in colors if c["node_id"]]
         if node_ids:
             try:
-                nodes_data = client.get_nodes(file_key, node_ids[:50]).get("nodes", {})
+                nodes_data = client.get_nodes(file_key, node_ids, depth=1).get("nodes", {})
                 for c in colors:
                     nid = c["node_id"].replace("-", ":")
                     if nid in nodes_data:
@@ -96,7 +97,7 @@ def main():
 
     # 3. 输出 Markdown 规范表
     md_lines = [
-        f"# Design Tokens: {file_data.get('name', 'App Design System')}",
+        f"# Design Tokens: {doc_name}",
         "",
         "## 🎨 颜色系统 (Color Tokens)",
         "",
@@ -200,7 +201,8 @@ def main():
     print(f"  📄 文档: {md_path}")
     print(f"  🍏 ObjC 常量: {objc_path}")
     print(f"  🐦 Swift 常量: {swift_path}")
+    print(f"  {client.usage_summary()}")
 
 
 if __name__ == "__main__":
-    main()
+    run_cli(main)

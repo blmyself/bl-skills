@@ -95,6 +95,35 @@ description: 全链路 Figma 转 iOS 专家。支持从 Figma URL 自动提取�
 
 ---
 
+## 🚦 API 配额与限流纪律 (必读)
+
+Figma 自 2025-11-17 起对 REST API 采用**分级漏桶配额**，最贵的 Tier 1 极其稀缺：
+
+| Tier | 接口 | Full/Dev 座位 (Pro→Org→Ent) | Viewer/Collab 座位 |
+| :--- | :--- | :--- | :--- |
+| **1** | `GET file`、`GET file nodes`、`GET image` | **10 → 15 → 20 次/分** | **6 次/月** |
+| 2 | image fills、comments、variables、version history | 25 → 50 → 100 次/分 | 5 次/分 |
+| 3 | file **meta**、components、styles、users | 50 → 100 → 150 次/分 | 10 次/分 |
+
+`scripts/figma_api_client.py` 已内置防护，**所有 Figma 请求必须经由该客户端**，禁止在任何脚本里直接 `curl` 或 `urllib` 打 `api.figma.com`：
+- **主动限速**：跨进程持久化令牌桶，宁可本地排队也不触发 429（默认只用官方额度的 80%）。
+- **429 智能处置**：读取 `Retry-After` 与 `X-Figma-Rate-Limit-Type`；`type=low`（Viewer 座位）或等待超过 120s 时**立刻失败并给出处置建议**，绝不盲等或连打导致封禁延长。
+- **共享冷却期**：一个脚本吃到 429 后落盘冷却时间，其余脚本自动避让；**写下冷却期的进程自己同样遵守**。
+- **月度硬计数**：`FIGMA_PLAN=view|starter`（Viewer/Collab 座位）时额外记账 Tier 1「6 次/月」，用完直接快速失败，不会被一次批量切图烧干。
+- **持久化缓存**：默认 `~/.cache/figma-to-ios-pro`（7 天 TTL），重跑同一设计稿零请求；渲染出的 PNG 按「渲染 URL 指纹」命名，设计稿更新后自动换新文件，不会复用过期切图。
+
+实操纪律：
+1. **一次全量、多次复用**：`scan_app_screens.py` 与 `export_design_tokens.py` 每个文件只跑一次，后续按 `node-id` 用 `extract_node_spec.py` 精确取单页，不要反复整文件扫描。
+2. **禁止无 `depth` 的整文件拉取**；只想拿文件名请用 Tier 3 的 `client.get_file_name()`。
+3. **批量合并**：多节点一次性传入 `get_nodes` / `get_images`（客户端自动去重分批），严禁 for 循环里逐个请求。
+4. **吃到配额错误时**：不要重试脚本，先检查 Token 座位类型（`type=low` 说明该 Token 是 Viewer/Collab 座位，Tier 1 全月只有 6 次），改用 Full/Dev 座位 Token 或切换 Figma Desktop MCP 通道。
+
+Token 作用域需同时包含 `file_content:read` 与 `file_metadata:read`（后者是 Tier 3 的 `files/:key/meta` 所需；缺失时只能退回更贵的 Tier 1 取文件名）。可用 `python3 scripts/figma_api_client.py --diagnose` 自检 Token 与当前冷却状态。
+
+常用环境变量：`FIGMA_PLAN=pro|org|enterprise|view|starter`（校准限速档位，`view/starter` 启用月度硬计数）、`FIGMA_RATE_SAFETY=0.8`（安全系数）、`FIGMA_CACHE_TTL`（秒；`0` = 不读缓存，负数 = 永不过期）、`FIGMA_OFFLINE=1`（仅用缓存，零网络请求）、`FIGMA_NO_CACHE=1`（强制刷新 JSON 与 PNG）。
+
+---
+
 ## 📚 规范参考库 (References)
 
 按需查阅 `references/` 目录下的专业指南：

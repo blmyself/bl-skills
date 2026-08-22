@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Dict, Any, List
 
 try:
-    from figma_api_client import FigmaAPIClient
+    from figma_api_client import FigmaAPIClient, run_cli
 except ImportError:
-    from scripts.figma_api_client import FigmaAPIClient
+    from scripts.figma_api_client import FigmaAPIClient, run_cli
 
 
 def extract_file_key(url_or_key: str) -> str:
@@ -110,7 +110,8 @@ def main():
 
     print(f"\n🎉 扫描完成！共发现 {len(pages)} 个画布，{total_screens} 个业务界面，{len(components)} 个全局通用组件。")
     print(f"📄 架构清单已输出至: {out_path}")
+    print(f"{client.usage_summary()}")
 
 
 if __name__ == "__main__":
-    main()
+    run_cli(main)

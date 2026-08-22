@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Dict, Any, List, Set, Tuple, Optional
 
 try:
-    from figma_api_client import FigmaAPIClient
+    from figma_api_client import FigmaAPIClient, run_cli
 except ImportError:
-    from scripts.figma_api_client import FigmaAPIClient
+    from scripts.figma_api_client import FigmaAPIClient, run_cli
 
 
 def parse_figma_url(url: str) -> Tuple[str, str]:
@@ -237,9 +237,11 @@ def main():
     module_folder = create_namespace_folder(xcassets_path, args.module)
 
     # 6. 下载并生成 .imageset
-    import urllib.request
+    #    统一走 client.download_image：带 CDN 429/5xx 指数退避，并把 PNG 落到本地缓存
+    #    (文件名带渲染 URL 指纹，设计稿更新后自然换文件，不会复用过期切图)。
     downloaded_count = 0
     generated_assets = []
+    failed: List[str] = []
 
     for a in asset_nodes:
         nid = a["id"]
@@ -247,21 +249,19 @@ def main():
         url_3x = img_urls_3x.get(nid)
 
         if not url_2x or not url_3x:
+            failed.append(f"{a['name']} (Figma 未返回渲染 URL)")
             continue
 
         raw_name = a["name"]
         final_name = f"{args.prefix}{raw_name}" if args.prefix else raw_name
 
         try:
-            req_2x = urllib.request.Request(url_2x, headers={"User-Agent": "FigmaToIOSPro/2.0"})
-            with urllib.request.urlopen(req_2x, timeout=20) as resp:
-                data_2x = resp.read()
+            p2x = client.download_image(
+                url_2x, client.image_cache_path(file_key, nid, 2, url_2x), skip_if_exists=True)
+            p3x = client.download_image(
+                url_3x, client.image_cache_path(file_key, nid, 3, url_3x), skip_if_exists=True)
 
-            req_3x = urllib.request.Request(url_3x, headers={"User-Agent": "FigmaToIOSPro/2.0"})
-            with urllib.request.urlopen(req_3x, timeout=20) as resp:
-                data_3x = resp.read()
-
-            create_imageset(module_folder, final_name, data_2x, data_3x)
+            create_imageset(module_folder, final_name, p2x.read_bytes(), p3x.read_bytes())
             downloaded_count += 1
             generated_assets.append({
                 "name": final_name,
@@ -269,10 +269,16 @@ def main():
             })
             print(f"  ✅ 已写入: {args.module}/{final_name}.imageset (@2x, @3x)")
         except Exception as e:
+            failed.append(f"{final_name}: {e}")
             print(f"  ❌ 下载 {final_name} 失败: {e}", file=sys.stderr)
 
     print(f"\n🎉 切图全部完成！共导出 {downloaded_count} 组高清资产到:")
     print(f"  📂 目录: {module_folder}")
+    print(f"  {client.usage_summary()}")
+    if failed:
+        print(f"  ⚠️ {len(failed)} 个资产未导出，重跑本命令即可续传 (已成功的走本地缓存):")
+        for f in failed[:10]:
+            print(f"     - {f}")
     print("\n💡 iOS 代码使用方式:")
     for ga in generated_assets:
         print(f"  • Objective-C: [UIImage imageNamed:@\"{ga['namespaced_name']}\"] (或 @\"{ga['name']}\")")
@@ -280,4 +286,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run_cli(main)
