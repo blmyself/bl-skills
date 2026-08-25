@@ -27,12 +27,15 @@ https://www.figma.com/design/YOUR_FILE_KEY/MyApp?node-id=100-200
 
 ---
 
-### 场景 2：按模块 Namespace 自动切图导出至 `Assets.xcassets`
+### 场景 2：按模块 Namespace 自动切图导出与智能规范重命名
 ```text
 把这个 Figma 节点里的图标切图导出到项目的 Assets.xcassets，归类到 PredictionLeak 模块下：
 https://www.figma.com/design/YOUR_FILE_KEY/MyApp?node-id=100-200
 ```
-> **AI 动作**：自动探测工程中的 `Assets.xcassets`（或兼容 `Images.xcassets`），自动识别图标元素，批量拉取 `@2x` 和 `@3x` 高清切图，并在 `Assets.xcassets/PredictionLeak/` 下生成带命名空间配置的 `.imageset` 资源包。
+> **AI 动作**：
+> 1. **智能审查与规范化**：自动过滤 `Vector` / `Group 12` 等默认名（自动抓取父容器语义），对中文图层名进行英文语义翻译，统一按 iOS 规范格式化为 `ic_back`、`btn_submit`、`img_empty` 等 `snake_case` 名称。
+> 2. **支持审查与自定义重命名**：支持先通过 `--dry-run` 预览命名，并通过 `--rename-map` / `--rename-file` 进行精准覆盖。
+> 3. **批量拉取与 Namespace 隔离**：批量获取 `@2x` 与 `@3x` 高清切图，并在 `Assets.xcassets/PredictionLeak/` 下生成带命名空间配置的 `.imageset`。
 
 ---
 
@@ -96,14 +99,14 @@ figma-to-ios-pro/
 │   └── openai.yaml                    # Agent 平台元数据
 ├── scripts/                           # 自动化 Python 工具库
 │   ├── figma_api_client.py            # 核心 API 客户端 (含缓存与 429 智能重试)
-│   ├── export_assets_to_xcassets.py   # 模块 Namespace 自动切图导出器 (@2x/@3x，优先 Assets.xcassets 兼容 Images.xcassets)
+│   ├── export_assets_to_xcassets.py   # 模块 Namespace 自动切图导出器 (含智能规范清洗、艺术字/描边文本识别、--rename-map 与 --dry-run)
 │   ├── export_design_tokens.py        # 全局设计 Token 提取器
 │   ├── scan_app_screens.py            # 整套 App 架构大纲扫描器
-│   ├── extract_node_spec.py           # 单节点属性与高清截图提取
+│   ├── extract_node_spec.py           # 单节点属性、高清截图及 RenderBounds 溢出负边距 Masonry 约束生成
 │   ├── extract_uikit_impl_snapshot.py # UIKit 代码快照提取
 │   └── figma_uikit_audit.py           # 视觉保真度对比审计
 ├── references/                        # iOS 技术栈规范手册
-│   ├── ios-uikit-xib-lane.md          # UIKit & XIB 规范
+│   ├── ios-uikit-xib-lane.md          # UIKit & XIB 规范 (含 RenderBounds 负边距与艺术字规范)
 │   ├── swiftui-lane-overview.md       # SwiftUI 架构与布局规范
 │   └── shared-uikit-component-hardening.md # 复用组件防爆盾指南
 └── templates/                         # 代码与规范模板
@@ -119,9 +122,15 @@ figma-to-ios-pro/
 - **本次升级改动**：
   1. 将原本分立的 `figma-mcp` 与 `figma-to-ios-ui` 两个技能合并为单一中枢 `figma-to-ios-pro`。
   2. 引入全自动 Figma REST API 客户端，内置 429 指数退避与本地强缓存，消除本地 MCP 付费限制。
-  3. 新增按模块 Namespace 自动切图与 Asset Catalog 导出器 (`export_assets_to_xcassets.py`)，**优先标准 `Assets.xcassets`，同时兼容旧工程 `Images.xcassets`**。
-  4. 新增全 App 页面大纲扫描器 (`scan_app_screens.py`) 与全局 Design Tokens 自动导出器 (`export_design_tokens.py`)。
-  5. 强化 Objective-C + Masonry 与 SwiftUI 的项目技术栈自动嗅探与组件解耦能力。
+  3. 新增按模块 Namespace 自动切图与 Asset Catalog 导出器 (`export_assets_to_xcassets.py`)：
+     - **优先标准 `Assets.xcassets`，同时兼容旧工程 `Images.xcassets`**。
+     - **智能图层清洗与规范化**：自动过滤 `Vector`、`Group` 等无意义名并继承父容器语义，中文 UI 词汇自动翻译为英文，自动补齐 `ic_`/`btn_`/`img_`/`bg_` 前缀。
+     - **非系统字体与描边艺术字自动识别**：遇到 `fontFamily != PingFang/System` 或 `strokes.length > 0`（描边艺术字）自动标记为 `IMAGE` 切图导出。
+     - **支持 `--dry-run` 预览审查** 与 **`--rename-map` / `--rename-file` 自定义精准重命名**。
+  4. 新增单节点 RenderBounds 相对坐标与 Masonry 约束生成器 (`extract_node_spec.py`)：
+     - **自动检测突破父容器的溢出元素**，输出带有负边距（如 `make.top.equalTo(superview).offset(-8.0)`）的高精度 Objective-C Masonry 约束代码。
+  5. 新增全 App 页面大纲扫描器 (`scan_app_screens.py`) 与全局 Design Tokens 自动导出器 (`export_design_tokens.py`)。
+  6. 强化 Objective-C + Masonry 与 SwiftUI 的项目技术栈自动嗅探与组件解耦能力。
 
 ---
 

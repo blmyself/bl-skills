@@ -110,6 +110,46 @@ Default runtime diagnosis order:
 | `justify-between` | `stackView.distribution = .equalSpacing` |
 | `justify-center` | `stackView.distribution = .equalCentering` |
 
+---
+
+## 📐 RenderBounds 相对坐标与溢出负边距规则 (Overflow & Negative Margins)
+
+在将 Figma 视觉元素还原为 Masonry 或 Auto Layout 代码时，必须优先基于 `absoluteRenderBounds`（包含描边、投影和溢出渲染范围）计算子节点相对父容器的相对坐标：
+
+1. **相对坐标计算公式**：
+   - 顶部相对偏移：`rel_top = child.renderBounds.y - parent.renderBounds.y`
+   - 左侧相对偏移：`rel_left = child.renderBounds.x - parent.renderBounds.x`
+   - 底部溢出判断：`rel_bottom_overflow = (child.y + child.h) - (parent.y + parent.h)`
+   - 右侧溢出判断：`rel_right_overflow = (child.x + child.w) - (parent.x + parent.w)`
+
+2. **溢出负边距代码输出标准**：
+   - 当 `rel_top < 0`（如角标向上突出 `-8pt`）时，必须生成负边距约束：
+     ```objc
+     [self.badgeView mas_makeConstraints:^(MASConstraintMaker *make) {
+         make.top.equalTo(self.cardContainer.mas_top).offset(-8.0); // 突破顶部负边距
+         make.left.equalTo(self.cardContainer.mas_left).offset(-8.0);
+         make.size.mas_equalTo(CGSizeMake(48.0, 20.0));
+     }];
+     ```
+   - 底部或右侧溢出时，同样生成正向溢出 offset：
+     ```objc
+     make.right.equalTo(self.cardContainer.mas_right).offset(12.0); // 突破右侧外沿
+     ```
+   - **注意**：具有溢出元素的父容器，严禁设置 `clipsToBounds = YES`，否则会导致悬浮角标/挂件被意外截断。
+
+---
+
+## 🎨 非系统字体与描边艺术字转切图规范 (Artistic Typography to Asset)
+
+当遍历解析 Figma 节点时，遇到 `type == "TEXT"` 的文本节点：
+1. **转切图触发条件**：
+   - **非系统字体**：`fontFamily` 不属于标准系统字体（即非 `PingFang SC` / `SF Pro` / `San Francisco` / `System`，例如 `DIN Alternate`、`Impact`、`Bebas`、`YouSheBiaoTiHei` 等商用或艺术字体）。
+   - **文本描边**：`strokes.length > 0`（设置了外描边、内描边艺术字效果）。
+   - **渐变填充**：设置了 `GRADIENT_LINEAR` / `GRADIENT_RADIAL` 等特殊文字填充。
+2. **处理要求**：
+   - 自动将该文本节点标记为 **IMAGE 切图资产** 导出至 `.xcassets`（前缀为 `img_art_text_` 或 `img_`）。
+   - 在 iOS 代码中以 `UIImageView` / `Image` 控件加载，**严禁使用普通 UILabel 强行硬编码不存在的字体或丢弃描边效果**。
+
 ## Project Profile Setup
 
 Resolve these project constants first:

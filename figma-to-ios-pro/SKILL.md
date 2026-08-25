@@ -51,22 +51,35 @@ description: 全链路 Figma 转 iOS 专家。支持从 Figma URL 自动提取�
 - 用户提供了具体页面的 Figma URL（带 `node-id`），要求实现 UIKit 视图或 SwiftUI 视图。
 
 **执行步骤**：
-1. **拉取节点数据与渲染截图**：
-   ```bash
-   python3 scripts/extract_node_spec.py "<Figma_Node_URL>" --out-dir "/tmp/figma_spec"
-   ```
-   - 自动获取该 Node 的完整树形 JSON 与 2x/3x 高清截图。
-2. **识别目标工程技术栈**：
-   - 检测当前 Xcode 工程风格（如本项目中的 `Objective-C + Masonry`，或 `SwiftUI`，或 `UIKit + XIB`）。
-   - 绝不生搬硬套 Web/React 样式，严格转换为 iOS 原生约束与组件。
-3. **组件化拆分原则 (Component Decomposition)**：
-   - 严禁将几百行代码全堆在一个 ViewController 中！
-   - 按照 Figma 逻辑层级将页面解耦为独立的可复用组件（如 `HeaderSegmentView`、`OddsGridView`、`FeedCardView`、`CustomTabBarView` 等）。
-4. **绑定全局 Design Tokens**：
-   - 优先引用模式 1 生成的颜色宏 / Token，坚决避免硬编码十六进制色值。
-5. **工程注册与语法校验**：
-   - 自动将新代码注册至 `.xcodeproj/project.pbxproj`。
-   - 运行 Clang 或 `xcodebuild` 做静态编译语法检查，确保 0 错误 0 警告交付。
+1. **拉取节点数据、渲染截图与 RenderBounds 相对约束**：
+    ```bash
+    python3 scripts/extract_node_spec.py "<Figma_Node_URL>" --out-dir "/tmp/figma_spec"
+    ```
+    - 自动获取该 Node 的完整树形 JSON 与 2x/3x 高清截图。
+    - **RenderBounds 相对坐标换算**：自动计算子节点相对父容器的相对坐标，并自动输出带有**突破父容器溢出负边距**（如 `make.top.equalTo(superview).offset(-8.0)`）的 Masonry 代码到 `masonry_constraints_*.m`。
+2. **切图提取与规范重命名 (Asset Export & Renaming)**：
+    - 在生成 UI 代码前，运行切图脚本将页面所需的切图/图标导出至 Xcode Assets：
+    ```bash
+    # 审查模式：预览并检查命名是否规范
+    python3 scripts/export_assets_to_xcassets.py "<Figma_Node_URL>" --module "<ModuleName>" --dry-run
+
+    # 导出模式 (支持自动中文翻译/无意义默认名清洗/自定义重命名映射)：
+    python3 scripts/export_assets_to_xcassets.py "<Figma_Node_URL>" --module "<ModuleName>" --rename-map '{"node_id": "ic_nav_back"}'
+    ```
+    - **艺术字/描边文本自动转切图**：当遇到 `type == "TEXT"` 且 `fontFamily != PingFang/System` 或 `strokes.length > 0`（描边艺术字）时，自动将其标记为 `IMAGE` 资产导出，避免在 iOS 端以普通 UILabel 强行硬编码。
+    - 强制规范：图标统一 `ic_`，按钮统一 `btn_`，插画统一 `img_`，背景统一 `bg_`，杜绝 `Vector`、`Group` 等无意义图层名。
+3. **识别目标工程技术栈**：
+    - 检测当前 Xcode 工程风格（如本项目中的 `Objective-C + Masonry`，或 `SwiftUI`，或 `UIKit + XIB`）。
+    - 绝不生搬硬套 Web/React 样式，严格转换为 iOS 原生约束与组件。
+4. **组件化拆分原则 (Component Decomposition)**：
+    - 严禁将几百行代码全堆在一个 ViewController 中！
+    - 按照 Figma 逻辑层级将页面解耦为独立的可复用组件（如 `HeaderSegmentView`、`OddsGridView`、`FeedCardView`、`CustomTabBarView` 等）。
+5. **绑定全局 Design Tokens 与切图资产**：
+    - 优先引用模式 1 生成的颜色宏 / Token，坚决避免硬编码十六进制色值。
+    - 图片资源严格使用第 2 步规范命名导入的 Assets（如 `[UIImage imageNamed:@"ModuleName/ic_back"]` 或 `Image("ModuleName/ic_back")`）。
+6. **工程注册与语法校验**：
+    - 自动将新代码注册至 `.xcodeproj/project.pbxproj`。
+    - 运行 Clang 或 `xcodebuild` 做静态编译语法检查，确保 0 错误 0 警告交付。
 
 ---
 
