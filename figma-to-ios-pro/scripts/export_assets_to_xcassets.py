@@ -611,7 +611,7 @@ def main():
     for a in processed_assets:
         custom_flag = "🏷️自定义" if a.get("is_custom_renamed") else ""
         note = a.get("art_reason") or custom_flag or "标准切图"
-        print(f"{a['id']:<12} | {a['orig_name'][:22]:<24} | {a['final_name']:<30} | {a['width']:.0f}x{a['height']:.0f:<5} | {note}")
+        print(f"{a['id']:<12} | {a['orig_name'][:22]:<24} | {a['final_name']:<30} | {a['width']:<5.0f}x{a['height']:<5.0f} | {note}")
     print("-" * 90)
 
     # 如果是 Dry-run 模式，仅输出建议的映射模板并退出
