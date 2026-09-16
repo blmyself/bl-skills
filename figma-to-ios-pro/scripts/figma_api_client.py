@@ -307,7 +307,10 @@ class FigmaAPIClient:
         self.token = token or find_figma_token()
         if not self.token:
             raise ValueError(
-                "❌ 未找到有效的 Figma Token。请在 ~/.zshrc 或 skill 的 .env 中设置 FIGMA_ACCESS_TOKEN=figd_..."
+                "❌ 未找到有效的 Figma Token。\n"
+                "👉 快速配置：复制 skill 目录下的 .env.example 为 .env 并填入 Token：\n"
+                "   cp .env.example .env (编辑填入 FIGMA_ACCESS_TOKEN=figd_...)\n"
+                "👉 或在终端环境中设置：export FIGMA_ACCESS_TOKEN=figd_..."
             )
         self.verbose = verbose
         self.plan = (plan or os.environ.get("FIGMA_PLAN") or "pro").strip().lower()

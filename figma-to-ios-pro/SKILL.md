@@ -103,8 +103,15 @@ description: 全链路 Figma 转 iOS 专家。支持从 Figma URL 自动提取�
 
 本技能内置三级自动 Token 探测机制：
 1. **环境变量**：`FIGMA_ACCESS_TOKEN` / `FIGMA_TOKEN`。
-2. **Skill 本地配置文件**：读取 [`.env`](.env)。
+2. **Skill 本地配置文件**：首次使用时，可复制模板 [`.env.example`](.env.example) 生成 [`.env`](.env) 并填入 Token：
+   ```bash
+   cp .env.example .env
+   # 编辑 .env 填入 FIGMA_ACCESS_TOKEN=figd_...
+   ```
 3. **本地 MCP 服务**：如果开启了 Figma Desktop，支持通过本地 `127.0.0.1:3845` 零 Token 直接读取选中图层。
+
+> [!TIP]
+> 根目录 `.gitignore` 已忽略 `.env` 文件，请放心地在本地 `.env` 中存放私有 Token，切勿将私钥提交到 Git 仓库。
 
 ---
 
