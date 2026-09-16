@@ -103,7 +103,7 @@ description: 全链路 Figma 转 iOS 专家。支持从 Figma URL 自动提取�
 
 本技能内置三级自动 Token 探测机制：
 1. **环境变量**：`FIGMA_ACCESS_TOKEN` / `FIGMA_TOKEN`。
-2. **Skill 本地配置文件**：读取 [`.env`](file:///Users/kylin/.gemini/config/skills/figma-to-ios-pro/.env)。
+2. **Skill 本地配置文件**：读取 [`.env`](.env)。
 3. **本地 MCP 服务**：如果开启了 Figma Desktop，支持通过本地 `127.0.0.1:3845` 零 Token 直接读取选中图层。
 
 ---
@@ -140,8 +140,8 @@ Token 作用域需同时包含 `file_content:read` 与 `file_metadata:read`（�
 ## 📚 规范参考库 (References)
 
 按需查阅 `references/` 目录下的专业指南：
-- [**Objective-C & Masonry 规范**](file:///Users/kylin/.gemini/config/skills/figma-to-ios-pro/references/ios-uikit-xib-lane.md)
-- [**SwiftUI 状态流与数据绑定**](file:///Users/kylin/.gemini/config/skills/figma-to-ios-pro/references/swiftui-state-and-data-flow.md)
-- [**SwiftUI 视图拆分与布局**](file:///Users/kylin/.gemini/config/skills/figma-to-ios-pro/references/swiftui-view-structure-and-layout.md)
-- [**复用组件防爆盾与极端变体处理**](file:///Users/kylin/.gemini/config/skills/figma-to-ios-pro/references/shared-uikit-component-hardening.md)
-- [**实施后保真度验证流程**](file:///Users/kylin/.gemini/config/skills/figma-to-ios-pro/references/post-implementation-validation-and-learning.md)
+- [**Objective-C & Masonry 规范**](references/ios-uikit-xib-lane.md)
+- [**SwiftUI 状态流与数据绑定**](references/swiftui-state-and-data-flow.md)
+- [**SwiftUI 视图拆分与布局**](references/swiftui-view-structure-and-layout.md)
+- [**复用组件防爆盾与极端变体处理**](references/shared-uikit-component-hardening.md)
+- [**实施后保真度验证流程**](references/post-implementation-validation-and-learning.md)
